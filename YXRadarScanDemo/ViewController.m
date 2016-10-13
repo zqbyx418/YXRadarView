@@ -14,6 +14,7 @@
 @property (nonatomic, weak) YXRadarView *radarView;
 @property (nonatomic, strong) NSMutableArray *pointsArray;
 @property (nonatomic, strong) NSTimer *timer;
+@property (nonatomic, weak) CALayer *layer;
 @end
 
 @implementation ViewController
@@ -44,7 +45,7 @@
     self.radarView = radarView;
     
     // 目标点位置
-    [self randomPoint];
+    [self randomPoints];
     [self.radarView scan];
     [self startUpdatingRadar];
 }
@@ -59,7 +60,7 @@
     });
 }
 
-- (void)randomPoint
+- (void)randomPoints
 {
     [self.pointsArray removeAllObjects];
     int x, y;
@@ -68,6 +69,27 @@
         y = arc4random_uniform(400) - 200;
         [self.pointsArray addObject:@[@(x),@(y)]];
     }
+}
+
+- (void)flickAnimationForPoints
+{
+        static CGFloat opacityNum = 0;
+        BOOL ascending = YES;
+        if (ascending) {
+            opacityNum += 0.1;
+            if (opacityNum >= 1) {
+                ascending = NO;
+            }
+        }else{
+            opacityNum -= 0.1;
+            if (opacityNum <= 0.2) {
+                ascending = YES;
+            }
+        }
+        NSLog(@"%@----",[NSThread currentThread]);
+        self.layer.opacity = opacityNum;
+        [self.layer setNeedsDisplay];
+    NSLog(@"%@", self.layer);
 }
 
 #pragma mark - BYXRadarViewDataSource
@@ -83,29 +105,48 @@
 
 - (UIView *)radarView:(YXRadarView *)radarView viewForIndex:(NSUInteger)index
 {
-    UIView *pointView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 120, 25)];
-    CALayer *layer = [CALayer layer];
-    layer.frame = CGRectMake(0, 0, 6, 6);
-    layer.backgroundColor = [UIColor redColor].CGColor;
-    layer.cornerRadius = 3.f;
-    layer.masksToBounds = YES;
-    [pointView.layer addSublayer:layer];
-    __block CGFloat opacityNum = 0;
-    __block BOOL ascending = YES;
-    self.timer = [NSTimer scheduledTimerWithTimeInterval:0.1 repeats:YES block:^(NSTimer * _Nonnull timer) {
-        if (ascending) {
-            opacityNum += 0.1;
-            if (opacityNum >= 1) {
-                ascending = NO;
-            }
-        }else{
-            opacityNum -= 0.1;
-            if (opacityNum <= 0.2) {
-                ascending = YES;
-            }
-        }
-        layer.opacity = opacityNum;
-    }];
+    UIView *pointView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 5, 5)];
+    pointView.backgroundColor = [UIColor redColor];
+    pointView.layer.cornerRadius = 2.5f;
+//    YXFlickerPointView *point = [[YXFlickerPointView alloc] initWithFrame:CGRectMake(0, 0, 5, 5)];
+//    point.layer.cornerRadius = 2.5f;
+//    point.backgroundColor = [UIColor redColor];
+//    [pointView addSubview:point];
+//    CALayer *layer = [CALayer layer];
+//    self.layer = layer;
+//    NSLog(@"%@================", self.layer);
+//    layer.frame = CGRectMake(0, 0, 6, 6);
+//    layer.backgroundColor = [UIColor redColor].CGColor;
+//    layer.cornerRadius = 3.f;
+//    layer.masksToBounds = YES;
+//    [pointView.layer addSublayer:layer];
+//    __block CGFloat opacityNum = 0;
+//    __block BOOL ascending = YES;
+//    if ([NSTimer instancesRespondToSelector:@selector(scheduledTimerWithTimeInterval:repeats:block:)]) {
+//        // iOS10.0 API
+//        if (!self.timer) {
+//            self.timer = [NSTimer scheduledTimerWithTimeInterval:0.1 repeats:YES block:^(NSTimer * _Nonnull timer) {
+//                if (ascending) {
+//                    opacityNum += 0.1;
+//                    if (opacityNum >= 1) {
+//                        ascending = NO;
+//                    }
+//                }else{
+//                    opacityNum -= 0.1;
+//                    if (opacityNum <= 0.2) {
+//                        ascending = YES;
+//                    }
+//                }
+//                layer.opacity = opacityNum;
+//            }];
+//        }
+//
+//    } else {
+//        if (!self.timer) {
+//            self.timer = [NSTimer scheduledTimerWithTimeInterval:1.0 target:self selector:@selector(flickAnimationForPoints) userInfo:nil repeats:YES];
+//            
+//        }
+//    }
     
     return pointView;
 }
